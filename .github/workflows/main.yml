@@ -1,42 +1,33 @@
-name: Close issues
+name: Close issue with label and comment
 on:
   issues:
     types: [labeled]
+
 jobs:
-  close-issues:
+  close-issue:
     runs-on: ubuntu-latest
     steps:
-      - name: Close invalid or completed issues
-        uses: actions/github-script@v5
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Run labeler
+        uses: actions/labeler@v3
         with:
-          github-token: ${{secrets.GITHUB_TOKEN}}
+          repo-token: "${{ secrets.GITHUB_TOKEN }}"
+          sync-labels: true
+      - name: Create comment and close issue if labeled with "无效/超时"
+        if: ${{ contains(github.event.issue.labels.*.name, '无效/超时') }}
+        uses: actions/github-script@v4
+        with:
           script: |
-            const issue = context.issue;
-            const label = context.payload.label.name;
-            if (label === '无效/超时') {
-              await github.issues.createComment({
-                issue_number: issue.number,
-                owner: issue.owner,
-                repo: issue.repo,
-                body: '这个issue已经被标记为无效/超时，因此将被关闭。如果你有任何问题或反馈，请重新打开它或创建一个新的issue。谢谢！'
-              });
-              await github.issues.update({
-                issue_number: issue.number,
-                owner: issue.owner,
-                repo: issue.repo,
-                state: 'closed'
-              });
-            } else if (label === '完成了！') {
-              await github.issues.createComment({
-                issue_number: issue.number,
-                owner: issue.owner,
-                repo: issue.repo,
-                body: '这个issue已经被标记为完成了！，因此将被关闭。感谢你的贡献和支持！'
-              });
-              await github.issues.update({
-                issue_number: issue.number,
-                owner: issue.owner,
-                repo: issue.repo,
-                state: 'closed'
-              });
-            }
+            await github.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: 'This issue will be closed due to inactivity.'
+            });
+            await github.issues.update({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              state: 'closed'
+            });
