@@ -1,51 +1,59 @@
-name: Label issues
+name: Issue Labeler
 on:
   issues:
-    types:
-      - closed
-      - reopened
-      - labeled
+    types: [opened, reopened, closed]
 jobs:
-  label_issues:
+  labeler:
     runs-on: ubuntu-latest
-    permissions:
-      issues: write
     steps:
-      - uses: actions/github-script@v6
-        name: super-sheep-robot
+      - name: Add labels
+        uses: actions/github-script@v5
         with:
           script: |
-            const issue = context.payload.issue;
-            if (context.eventName === 'issues' && context.payload.action === 'closed') {
-              // issue closed, check the closer and reason
-              // same as before
-            } else if (context.eventName === 'issues' && context.payload.action === 'reopened') {
-              // issue reopened, add label 'reopened'
-              github.rest.issues.addLabels (
-                {
-                  issue_number: context.issue.number,
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  labels: ["reopened"]
-                })
-            } else if (context.eventName === 'issues' && context.payload.action === 'labeled') {
-              // issue labeled, check the label and close the issue if needed
-              const label = context.payload.label.name;
-              if (label === 'complete' || label === 'not planned' || label === 'invalid/timeout') {
-                // close the issue with a comment
-                github.rest.issues.createComment (
-                  {
-                    issue_number: context.issue.number,
-                    owner: context.repo.owner,
-                    repo: context.repo.repo,
-                    body: `This issue is closed because it is labeled as ${label}.`
-                  })
-                github.rest.issues.update (
-                  {
-                    issue_number: context.issue.number,
-                    owner: context.repo.owner,
-                    repo: context.repo.repo,
-                    state: 'closed'
-                  })
+            const issue = context.issue;
+            const actor = context.actor;
+            const action = context.payload.action;
+            const labels = context.payload.issue.labels.map(label => label.name);
+            if (action === 'opened' || action === 'reopened') {
+              // Add a label when an issue is opened or reopened
+              await github.issues.addLabels({
+                owner: issue.owner,
+                repo: issue.repo,
+                issue_number: issue.number,
+                labels: ['待处理']
+              });
+            } else if (action === 'closed') {
+              // Add different labels depending on who closed the issue and why
+              const closed_by = context.payload.sender.login;
+              const is_collaborator = context.payload.sender.site_admin || context.payload.sender.permissions.admin;
+              const is_author = closed_by === context.payload.issue.user.login;
+              if (is_author) {
+                // Add a label when the issue author closes the issue
+                await github.issues.addLabels({
+                  owner: issue.owner,
+                  repo: issue.repo,
+                  issue_number: issue.number,
+                  labels: ['无效/超时']
+                });
+              } else if (is_collaborator) {
+                // Add different labels depending on the reason for closing the issue
+                const comment = context.payload.issue.body;
+                if (comment.includes('not planned')) {
+                  // Add a label when the issue is closed because it is not planned
+                  await github.issues.addLabels({
+                    owner: issue.owner,
+                    repo: issue.repo,
+                    issue_number: issue.number,
+                    labels: ['无效/超时']
+                  });
+                } else if (comment.includes('complete')) {
+                  // Add a label when the issue is closed because it is complete
+                  await github.issues.addLabels({
+                    owner: issue.owner,
+                    repo: issue.repo,
+                    issue_number: issue.number,
+                    labels: ['完成了！']
+                  });
+                }
               }
             }
