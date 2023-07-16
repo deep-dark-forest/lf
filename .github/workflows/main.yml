@@ -4,6 +4,7 @@ on:
     types:
       - closed
       - reopened
+      - labeled
 jobs:
   label_issues:
     runs-on: ubuntu-latest
@@ -11,6 +12,7 @@ jobs:
       issues: write
     steps:
       - uses: actions/github-script@v6
+        name: super-sheep-robot
         with:
           script: |
             const issue = context.payload.issue;
@@ -26,4 +28,24 @@ jobs:
                   repo: context.repo.repo,
                   labels: ["reopened"]
                 })
+            } else if (context.eventName === 'issues' && context.payload.action === 'labeled') {
+              // issue labeled, check the label and close the issue if needed
+              const label = context.payload.label.name;
+              if (label === 'complete' || label === 'not planned' || label === 'invalid/timeout') {
+                // close the issue with a comment
+                github.rest.issues.createComment (
+                  {
+                    issue_number: context.issue.number,
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    body: `This issue is closed because it is labeled as ${label}.`
+                  })
+                github.rest.issues.update (
+                  {
+                    issue_number: context.issue.number,
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    state: 'closed'
+                  })
+              }
             }
