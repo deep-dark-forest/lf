@@ -1,0 +1,46 @@
+name: Label issues
+on:
+  issues:
+    types:
+      - closed
+jobs:
+  label_issues:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - uses: actions/github-script@v6
+        with:
+          script: |
+            const issue = context.payload.issue;
+            if (issue.closed_by.login === 'owner' || issue.closed_by.login === 'collaborator') {
+              // issue closed by owner or collaborator, check the reason
+              if (issue.body.includes('not planned')) {
+                // issue closed because not planned, add label 'bug'
+                github.rest.issues.addLabels (
+                  {
+                    issue_number: context.issue.number,
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    labels: ["not planned"]
+                  })
+              } else {
+                // issue closed because complete, add label 'bug'
+                github.rest.issues.addLabels (
+                  {
+                    issue_number: context.issue.number,
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    labels: ["complete"]
+                  })
+              }
+            } else {
+              // issue closed by author, add label 'bug'
+              github.rest.issues.addLabels (
+                {
+                  issue_number: context.issue.number,
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  labels: ["invalid/timeout"]
+                })
+            }
