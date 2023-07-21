@@ -1,13 +1,15 @@
-name: Close issues with label
+name: Auto close issues
 on:
-  schedule:
-    - cron: "0 5 * * 3" # every Wednesday at 5am UTC
+  issues:
+    types: [opened, edited]
 jobs:
-  close_issues_with_label:
+  auto_close_issues:
     runs-on: ubuntu-latest
     steps:
-      - uses: bdougie/close-issues-based-on-label@v1.2
-        env:
-          LABEL: "bug"
-          CLOSE_MESSAGE: "This issue is closed because it is not planned."
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/checkout@v2
+      - uses: Naturalclar/issue-action@v2.0.2
+        with:
+          github-token: "${{ secrets.GITHUB_TOKEN }}"
+          closed-issues-label: "bug"
+          closed-issues-message: "This issue is closed because it does not meet the issue template."
+
