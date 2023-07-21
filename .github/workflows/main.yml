@@ -1,33 +1,13 @@
-name: Close issue with label and comment
+name: Close issues with label
 on:
-  issues:
-    types: [labeled]
-
+  schedule:
+    - cron: "0 5 * * 3" # every Wednesday at 5am UTC
 jobs:
-  close-issue:
+  close_issues_with_label:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-      - name: Run labeler
-        uses: actions/labeler@v3
-        with:
-          repo-token: "${{ secrets.GITHUB_TOKEN }}"
-          sync-labels: true
-      - name: Create comment and close issue if labeled with "无效/超时"
-        if: ${{ contains(github.event.issue.labels.*.name, '无效/超时') }}
-        uses: actions/github-script@v4
-        with:
-          script: |
-            await github.issues.createComment({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: context.issue.number,
-              body: 'This issue will be closed due to inactivity.'
-            });
-            await github.issues.update({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: context.issue.number,
-              state: 'closed'
-            });
+      - uses: bdougie/close-issues-based-on-label@v1.2
+        env:
+          LABEL: "not planned"
+          CLOSE_MESSAGE: "This issue is closed because it is not planned."
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
