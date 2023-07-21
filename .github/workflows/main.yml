@@ -8,6 +8,6 @@ jobs:
     steps:
       - uses: bdougie/close-issues-based-on-label@v1.2
         env:
-          LABEL: "not planned"
+          LABEL: "bug"
           CLOSE_MESSAGE: "This issue is closed because it is not planned."
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
