@@ -1,42 +1,16 @@
+<!DOCTYPE html>
 <html>
 <head>
-  <style>
-    body {
-      background-color: #f0f0f0;
-      font-family: Arial, sans-serif;
-    }
-
-    h1 {
-      text-align: center;
-      color: #333;
-    }
-
-    .button {
-      display: inline-block;
-      padding: 10px 20px;
-      border-radius: 10px;
-      background-color: #114514;
-      color: white;
-      text-decoration: none;
-    }
-
-    .container {
-      width: 80%;
-      margin: 0 auto;
-    }
-
-    .buttons {
-      text-align: center;
-      margin-top: 20px;
-    }
-  </style>
+    <title>留言板</title>
 </head>
 <body>
-  <div class="container">
-    <h1>我是王初光，我爱玩原神</h1>
-    <div class="buttons">
-      <a href="https://www.yuanshen.com/" class="button">关于我</a>
-    </div>
-  </div>
+    <h1>留言板</h1>
+    <form action="submit.php" method="post">
+        <label for="name">姓名:</label><br>
+        <input type="text" id="name" name="name"><br>
+        <label for="message">留言:</label><br>
+        <textarea id="message" name="message"></textarea><br><br>
+        <input type="submit" value="提交">
+    </form> 
 </body>
 </html>
