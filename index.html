@@ -2,16 +2,86 @@
 <html>
 <head>
     <title>留言板</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        #container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1, h2 {
+            text-align: center;
+        }
+        label {
+            display: inline-block;
+            width: 70px;
+        }
+        input[type="text"], textarea {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 10px;
+        }
+        button {
+            display: block;
+            margin: 20px auto;
+            padding: 10px 20px;
+            font-size: 18px;
+            cursor: pointer;
+        }
+        #messageList li {
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #ccc;
+        }
+    </style>
 </head>
 <body>
-    <h1>欢迎来到留言板！</h1>
-    <form action="submit.php" method="post">
-        <label for="name">姓名：</label>
-        <input type="text" id="name" name="name"><br><br>
-        <label for="message">留言内容：</label><br>
-        <textarea id="message" name="message" rows="4" cols="50"></textarea><br><br>
-        <input type="submit" value="提交">
-    </form>
+
+<div id="container">
+    <h1>留言板</h1>
+
+    <label for="name">姓名：</label>
+    <input type="text" id="name" name="name"><br><br>
+    <label for="message">留言：</label>
+    <textarea id="message" name="message"></textarea><br><br>
+    <button onclick="addMessage()">提交留言</button>
+
+    <h2>留言列表：</h2>
+    <ul id="messageList">
+    </ul>
+</div>
+
+<script>
+let messages = [];
+
+function addMessage() {
+    let name = document.getElementById("name").value;
+    let message = document.getElementById("message").value;
+    let nameExists = messages.some(function(item) {
+        return item.name === name;
+    });
+    if (nameExists) {
+        alert("该姓名已经存在，请更改您的姓名。");
+    } else {
+        messages.push({name: name, message: message});
+        displayMessages();
+    }
+}
+
+function displayMessages() {
+    let messageList = document.getElementById("messageList");
+    messageList.innerHTML = "";
+    for (let i = 0; i < messages.length; i++) {
+        let messageItem = document.createElement("li");
+        messageItem.innerHTML = "<strong>" + messages[i].name + "</strong>: " + messages[i].message;
+        messageList.appendChild(messageItem);
+    }
+}
+</script>
+
 </body>
 </html>
-
