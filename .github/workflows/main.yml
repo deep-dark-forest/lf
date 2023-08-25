@@ -1,15 +1,23 @@
-name: Auto close issues
+name: Close issues with label and comment
 on:
   issues:
-    types: [opened, edited]
+    types: [labeled]
 jobs:
-  auto_close_issues:
+  close_issues:
     runs-on: ubuntu-latest
+    permissions:
+      issues: write
     steps:
       - uses: actions/checkout@v2
-      - uses: Naturalclar/issue-action@v2.0.2
+      - name: Create comment
+        uses: peter-evans/create-or-update-comment@v3
         with:
-          github-token: "${{ secrets.GITHUB_TOKEN }}"
-          closed-issues-label: "bug"
-          closed-issues-message: "This issue is closed because it does not meet the issue template."
-
+          issue-number: ${{ github.event.issue.number }}
+          body: |
+            这个issue已经被关闭，因为它被标记为“无效/超时”。
+            感谢你的反馈和支持！
+      - name: Close issues with label
+        uses: bdougie/close-issues-based-on-label@v1.2
+        env:
+          LABEL: 无效/超时
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
