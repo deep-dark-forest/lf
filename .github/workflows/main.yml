@@ -1,23 +1,39 @@
-name: Close issues with label and comment
+name: Close invalid or stale issues
 on:
+  schedule:
+    - cron: '0 0 * * *' # run once a day
   issues:
     types: [labeled]
 jobs:
   close_issues:
     runs-on: ubuntu-latest
-    permissions:
-      issues: write
     steps:
-      - uses: actions/checkout@v2
-      - name: Create comment
-        uses: peter-evans/create-or-update-comment@v3
+      - name: Filter issues by label
+        uses: actions/github-script@v5
         with:
-          issue-number: ${{ github.event.issue.number }}
-          body: |
-            这个issue已经被关闭，因为它被标记为“无效/超时”。
-            感谢你的反馈和支持！
-      - name: Close issues with label
-        uses: bdougie/close-issues-based-on-label@v1.2
-        env:
-          LABEL: 无效/超时
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const query = `repo:${context.repo.owner}/${context.repo.repo} is:issue is:open label:"无效/超时"`
+            const issues = await github.paginate(github.rest.search.issuesAndPullRequests, { q: query })
+            return issues.map(issue => issue.number)
+          result-encoding: string
+      - name: Close issues
+        uses: actions/github-script@v5
+        with:
+          script: |
+            const issue_numbers = JSON.parse(core.getInput('issues'))
+            for (const issue_number of issue_numbers) {
+              // add a comment before closing the issue
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number,
+                body: 'This issue has been closed because it is invalid or stale.'
+              })
+              await github.rest.issues.update({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number,
+                state: 'closed'
+              })
+            }
+          issues: ${{ steps.filter_issues.outputs.result }}
