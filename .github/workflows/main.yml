@@ -7,7 +7,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check label
-        if: github.event.label.name == 'wontfix'
+        if: github.event.label.name == '无效/超时'
         run: |
           echo "Issue has the wontfix label. Closing issue."
           curl -X PATCH -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
