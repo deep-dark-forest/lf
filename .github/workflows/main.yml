@@ -7,18 +7,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check label
-        id: check-label
+        if: github.event.label.name == 'wontfix'
         run: |
-          LABEL_NAME="无效/超时"
-          ISSUE_LABELS="${{ github.event.issue.labels.*.name }}"
-          if [[ $ISSUE_LABELS == *"$LABEL_NAME"* ]]; then
-            echo "::set-output name=CLOSE_ISSUE::true"
-          else
-            echo "::set-output name=CLOSE_ISSUE::false"
-          fi
-      - name: Close issue
-        if: steps.check-label.outputs.CLOSE_ISSUE == 'true'
-        uses: peter-evans/close-issue@v1
-        with:
-          issue-number: ${{ github.event.issue.number }}
-          comment: "This issue has been automatically closed because it has the ${{ github.event.label.name }} label."
+          echo "Issue has the wontfix label. Closing issue."
+          curl -X PATCH -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+          -d '{"state": "closed"}' \
+          https://api.github.com/repos/${{ github.repository }}/issues/${{ github.event.issue.number }}
