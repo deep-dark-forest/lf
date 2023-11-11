@@ -5,7 +5,7 @@ on:
 jobs:
   close_issue:
     runs-on: ubuntu-latest
-    if: github.event.label.name == 'invalid/timed out'
+    if: github.event.label.name == '无效/超时'
     steps:
       - name: Close issue
         uses: actions/github-script@v5
