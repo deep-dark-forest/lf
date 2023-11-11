@@ -1,9 +1,8 @@
-name: Close invalid or timed out issues
-on:
-  issues:
-    types: [labeled]
+name: My Awesome Workflow
+on: push pull request workflow_dispatch
 jobs:
   close_issue:
+    name: Close Issue Job
     runs-on: ubuntu-latest
     if: github.event.label.name == '无效/超时'
     steps:
@@ -15,5 +14,13 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: context.issue.number,
-              state: 'closed'
+              state: 'closed',
+              state_reason: 'not planned',
+              body: 'This issue is closed as not planned.'
             })
+      - name: Modify avatar and name
+        run: |
+          # 修改头像
+          echo "https://user-images.githubusercontent.com/131975043/282243203-96a721d1-c62b-4953-892d-90797b984d05.jpg" | base64 -d > avatar.png
+          # 修改名称
+          echo "My Awesome Workflow" > main.yml
